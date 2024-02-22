@@ -3,6 +3,7 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+let axios = require("axios")
 
 public_users.post("/register", (req,res) => {
     const username = req.body.username;
@@ -20,15 +21,18 @@ public_users.post("/register", (req,res) => {
     });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  return res.json(JSON.stringify(books));
+public_users.get('/', function (req, res) {
+    let promise = new Promise((resolve, reject)=>{
+        resolve(res.send(books))
+    })
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {  
+public_users.get('/isbn/:isbn',function (req, res) {
   let bookChoice = req.params.isbn
-
-  return res.status(300).json(bookChoice);
+  let promise = new Promise((resolve, reject)=>{
+    resolve(res.send(books[bookChoice]))
+  })
  });
   
 // Get book details based on author
@@ -40,7 +44,9 @@ public_users.get('/author/:author',function (req, res) {
         ans.push(books[i])
     }
   }
-  res.status(300).send(JSON.stringify(ans))
+  let promise = new Promise((resolve, reject)=>{
+    resolve(res.send(JSON.stringify(ans)))
+  })
 });
 
 // Get all books based on title
@@ -52,7 +58,9 @@ public_users.get('/title/:title',function (req, res) {
         ans.push(books[i])
     }
   }
-  res.status(300).send(JSON.stringify(ans));
+  let promise = new Promise((resolve, reject)=>{
+    res.send(JSON.stringify(ans))
+  })
 });
 
 //  Get book review

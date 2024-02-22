@@ -37,7 +37,7 @@ regd_users.post("/login", (req,res) => {
     if (authenticatedUser(username,password)) {
       let accessToken = jwt.sign({
         data: password
-      }, 'access', { expiresIn: 600 });
+      }, 'access', { expiresIn: 60000 });
       req.session.authorization = {
         accessToken,username
     }
@@ -56,21 +56,33 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     if(review){
         let user = req.body.username
         for(let i in reviewedBooks["reviews"]){
-            if(i === user){
+            if(reviewedBooks["reviews"] === user){
                 reviewedBooks[i] = review
-                res.status(200).send(`${user} Reviewed: ${reviewedBooks.title}`)
+                res.status(200).send(`${user} revised their review of: ${reviewedBooks.title}`)
             }
         }
-        res.status(200).send(`${user} Reviewed: ${reviewedBooks.title}`)
+        reviewedBooks["reviews"] += {"username": user, "review": review}
+        res.status(200).send(`${user} created a new review for: ${reviewedBooks.title}`)
     }
   }
 });
 
 regd_users.delete("/auth/review/:isbn", (req, res) => {
-    let bookToDelete = req.params.isbn
-    let book = books[bookToDelete]
-    let reviewToDelete = req.body.review
-    
+    let bookIsbn = req.params.isbn
+    let user = req.body.username
+    let bookReviewsToDelete = books[bookIsbn]
+    let ans = []
+    for(let i in bookReviewsToDelete.reviews){
+        ans.push(i)
+        for(let x in i){
+            ans.push(bookReviewsToDelete["reviews"][x])
+            if(bookReviewsToDelete["reviews"][x]["username"] === user){
+                delete bookReviewsToDelete[i]
+                res.status(300).send(JSON.stringify(`Removed review of ${books[bookIsbn].title} by ${user}`))
+            }
+        }
+    }
+    res.send(JSON.stringify(ans))
 })
 
 module.exports.authenticated = regd_users;
